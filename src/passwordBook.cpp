@@ -26,7 +26,6 @@
 
 Preferences preferences;//非易失性存储（NVS）方案
 String input(""); //串口输入的字符串
-
 //
 static String password = "";
 static String name = "";
@@ -39,10 +38,12 @@ static bool isConfirm = false;
 		//初始化
 		passwordBook::passwordBook(){
 			preferences.begin("password", false);//开启空间命名password,false表示可修改
+			
 		}
 
 		//读取串口数据
 		bool passwordBook::readData(){
+
 			if(Serial.available()>0){
 				input = Serial.readStringUntil('\n');
 			}
@@ -116,21 +117,28 @@ static bool isConfirm = false;
 			u8g2.drawUTF8(0,30 + 15*(key_index),"|||||||||||||||||");
 
 
-			//确定/取消
-			
+			// 确定/取消
+			if(con == confirm){
+				isConfirm = true;
+			}
 
+			if(isConfirm){
+				switch (key_index)
+				{
+				case 0:
+					this->outputPassword();
+					break;
 
-			// switch (key_index)
-			// {
-			// case 0:
-			// 	this->isName(input);
-			// 	break;
-			// case 1:
-			// 	this->isPassword(input);
-			// 	break;
-			// default:
-			// 	break;
-			// }
+				case 1:
+					break;
+
+				case 2:
+					break;
+				default:
+					break;
+				}
+			}
+
 		}
 
 
