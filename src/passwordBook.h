@@ -11,10 +11,10 @@ class passwordBook{
         passwordBook();
 
         //读取串口数据
-        bool readData();
+        String readData();
 
-        //串口输出密码
-        bool outputPassword();
+        // //串口输出密码
+        // bool outputPassword();
 
         //判定是否为密码
         bool isPassword(String word);
@@ -23,7 +23,7 @@ class passwordBook{
         bool isName(String word);
 
         //保存密码与名称
-        void save();
+        bool save(String name,String password);
 
         //输出密码
         String out(String name);

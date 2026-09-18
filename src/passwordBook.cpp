@@ -26,9 +26,8 @@
 
 Preferences preferences;//非易失性存储（NVS）方案
 String input(""); //串口输入的字符串
-//
-static String password = "";
-static String name = "";
+
+
 //指针
 static int key_index = 0;
 
@@ -42,52 +41,56 @@ static bool isConfirm = false;
 		}
 
 		//读取串口数据
-		bool passwordBook::readData(){
+		String passwordBook::readData(){
 
-			if(Serial.available()>0){
-				input = Serial.readStringUntil('\n');
+			if(Serial.available()>0){		//
+				Serial.setTimeout(5000);	//超时时间: 5000ms
+				input = Serial.readStringUntil('\n'); //阻塞方法 等到 \n 或超时
 			}
 			Serial.print(input);
-			return true;
+			return input;
 		}
 
-		//串口输出密码
-		bool passwordBook::outputPassword(){
-			password = preferences.getString(name.c_str());
-			Serial.print(password);
-			return true;
-		}
+		// //根据输入的账号名,串口输出密码
+		// bool passwordBook::outputPassword(){
+		// 	password = preferences.getString(name.c_str());
+		// 	Serial.print(password);
+		// 	return true;
+		// }
 
-		//判定是否为密码
+		//判定串口输入的是否为密码
 		bool passwordBook::isPassword(String word){
-			if(word.startsWith("password")){
-				password = input.substring(8);
-				
+			if(word.startsWith("password")){				
 				return true;
 			}
 			return false;
 		}
 
-		//判断是否为密码源(name)
+		//判断是否为账户名(name)
 		bool passwordBook::isName(String word){
 			if(word.startsWith("name")){
-				name = input.substring(4);
 				return true;
 			}
 			return false;
 		}
 
-		//保存密码与名称
-		void passwordBook::save(){
+		//串口输入后,保存密码与名称
+		bool passwordBook::save(String name,String password){
+			//判断
+			
+			if(!this->isName(name) || !this->isPassword(password)){
+				return false;
+			}
+
+			//保存
 			preferences.putString(name.c_str(),password.c_str());
 			Serial.println("保存："+name+"密码："+password);
 			
-			//保存后应将变量password和name清空
-			password = "";
-			name = "";
+			return true;
+			
 		}
 
-		//串口输出密码
+		//串口输出指定name的密码
 		String passwordBook::out(String name){
 			String passwd = "";
 			passwd = preferences.getString(name.c_str());
@@ -125,13 +128,42 @@ static bool isConfirm = false;
 			if(isConfirm){
 				switch (key_index)
 				{
-				case 0:
-					this->outputPassword();
-					break;
+				case 0:{ //输入用户名,输出密码
+					u8g2.clearBuffer();
+					u8g2.drawUTF8(0,30,"串口读取中...");
+					u8g2.sendBuffer();
+					String input_data = this->readData();
+					
+					//输出
+					String draw_word = "读取成功: "+input_data;
+					u8g2.drawUTF8(0,30,draw_word.c_str());
 
-				case 1:
-					break;
+					//串口输出
+					this->out(input_data);
 
+					break;
+				}
+
+
+				case 1:{//保存密码
+					u8g2.clearBuffer();
+					u8g2.drawUTF8(0,30,"串口读取用户名...");
+					u8g2.sendBuffer();
+					String input_name = this->readData();
+					String input_password = this->readData();
+
+					if( this->save(input_name,input_password))
+					{
+						u8g2.drawUTF8(0,45,"保存成功");
+						u8g2.sendBuffer();
+					}else {
+						u8g2.drawUTF8(0,45,"读取失败");
+						u8g2.sendBuffer();
+					}
+					break;
+				}
+						
+				
 				case 2:
 					break;
 				default:
